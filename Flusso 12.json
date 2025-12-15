@@ -1,0 +1,557 @@
+{
+  "name": "Flusso 12",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Upload your data to test RAG",
+        "formDescription": "Carica il PDF o CSV del manuale per creare la knowledge base",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "file",
+              "fieldType": "file",
+              "multipleFiles": false,
+              "acceptFileTypes": ".pdf",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        -2656,
+        64
+      ],
+      "id": "1819cb57-122f-4e01-ab04-f0eecebac650",
+      "name": "Upload your file here",
+      "webhookId": "82848bc4-5ea2-4e5a-8bb6-3c09b94a8c5d"
+    },
+    {
+      "parameters": {
+        "dataType": "binary",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        -2224,
+        288
+      ],
+      "id": "b73227ab-648a-4ace-9429-e35e80df2612",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "memoryKey": {
+          "__rl": true,
+          "value": "vector_store_key",
+          "mode": "list",
+          "cachedResultName": "vector_store_key"
+        },
+        "embeddingBatchSize": 32
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreInMemory",
+      "typeVersion": 1.2,
+      "position": [
+        -2416,
+        64
+      ],
+      "id": "71100bd0-ae23-4c6f-86d9-445bc7aacbe2",
+      "name": "Insert Data to Store"
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolName": "knowledge_base",
+        "toolDescription": "Use this knowledge base to answer questions from the user",
+        "memoryKey": {
+          "__rl": true,
+          "mode": "list",
+          "value": "vector_store_key"
+        },
+        "topK": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreInMemory",
+      "typeVersion": 1.2,
+      "position": [
+        -1088,
+        512
+      ],
+      "id": "2460761c-1c4c-4563-ac55-4072d8c364d6",
+      "name": "Query Data Tool"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1776,
+        160
+      ],
+      "id": "b1454764-2089-4589-8a66-c5aa7c821bc9",
+      "name": "When chat message received",
+      "webhookId": "4091fa09-fb9a-4039-9411-7104d213f601"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Domanda: {{$json[\"chatInput\"]}}\n\nGenera un JSON valido con questa struttura:\n\n{\n  \"Domanda\": \"{{$json[\"chatInput\"]}}\",\n  \"Risposta\": \"<risposta precisa basata sui documenti o fallback>\",\n  \"is_fallback\": <true se fallback, false altrimenti>\n}\n\nRegole:\n- Se non puoi rispondere con certezza, inserisci **esattamente** come Risposta:\n  \"Le informazioni specifiche per rispondere a questa domanda non sono presenti nel contesto documentale fornito.\"\n- 'is_fallback' deve essere true solo in questo caso.\n- Non inventare altre domande.\n- Non aggiungere commenti extra.\n- Mantieni la risposta concisa, tecnica e fedele ai documenti.\n",
+        "options": {
+          "systemMessage": "Sei un assistente esperto ufficiale del sistema di rating reputazionale CROP NEWS - ITALIA VIRTUTE. \nIl tuo ruolo è rispondere in modo accurato, professionale e conciso alle domande degli utenti, utilizzando esclusivamente i documenti caricati (PDF relativi a CROP NEWS, RAM, RATER, APART e ME-AVALUETE HOLDING).\n\n### Regole rigidissime:\n1. **Mai generare nuove domande:** Usa solo la domanda che ti viene passata.\n2. **Niente conoscenze esterne:** Usa solo i documenti caricati. Non inventare nulla.\n3. **Fallback obbligatorio:** Se non puoi rispondere con certezza usando solo i documenti, rispondi ESATTAMENTE:  \n   \"Le informazioni specifiche per rispondere a questa domanda non sono presenti nel contesto documentale fornito.\"\n4. **Formato:** Rispondi sempre in JSON valido, senza commenti o testo extra.\n5. **Terminologia tecnica:** Usa solo la terminologia del sistema (es. P-PRO, ME-CERT, BIZ-QU, socio-utente).\n6. **Sintesi e precisione:** Risposte brevi, tecniche, dirette, senza digressioni.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        -1168,
+        144
+      ],
+      "id": "2c8437b9-671a-4429-b6cc-a67d3a9496ad",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -2400,
+        592
+      ],
+      "id": "3338c639-b0c5-4fe6-9dbd-a682c23b3395",
+      "name": "Embeddings Google Gemini",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "6xAGhA9zHQNia7ZG",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -1184,
+        368
+      ],
+      "id": "f9871cb7-6819-40c5-80cc-a99c1ef43700",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "6xAGhA9zHQNia7ZG",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appOWq5J1swtTRKxe",
+          "mode": "list",
+          "cachedResultName": "Chatbot QA",
+          "cachedResultUrl": "https://airtable.com/appOWq5J1swtTRKxe"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblEn3BeCYEaOOOEU",
+          "mode": "list",
+          "cachedResultName": "Risposte Chatbot",
+          "cachedResultUrl": "https://airtable.com/appOWq5J1swtTRKxe/tblEn3BeCYEaOOOEU"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Domanda": "={{ $json[\"Domanda\"] }}",
+            "Risposta": "=\n{{$json[\"Risposta\"]}}\n",
+            "Data": "={{$now}}\n"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Domanda",
+              "displayName": "Domanda",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Risposta",
+              "displayName": "Risposta",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Data",
+              "displayName": "Data",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        208
+      ],
+      "id": "e3d2108b-b46e-4670-9dee-d22895493cdb",
+      "name": "Create a record",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "2QKNouJknktmrI6L",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "3d2bc1f3-c75d-4ef1-b059-191aafa39290",
+              "leftValue": "={{$json[\"is_fallback\"]}}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -272,
+        144
+      ],
+      "id": "dc52754e-31bb-4461-a90e-d368acee6e7b",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 🔹 Nodo \"Normalize AI Output\"\n// Scopo: pulire e uniformare l'output JSON generato dall'AI Agent\n//        e restituire un oggetto con Domanda, Risposta, e is_fallback (boolean).\n\nconst itemsOut = [];\n\n// Messaggio di fallback ufficiale\nconst canonicalFallback = \"Le informazioni specifiche per rispondere a questa domanda non sono presenti nel contesto documentale fornito.\";\n\nfor (let i = 0; i < items.length; i++) {\n  const j = items[i].json;\n\n  // Estraggo l'output grezzo dell'agente\n  let rawOutput = \"\";\n  if (j.output && Array.isArray(j.output) && j.output[0]?.output) {\n    rawOutput = j.output[0].output;\n  } else if (typeof j.output === \"string\") {\n    rawOutput = j.output;\n  } else if (typeof j.response === \"string\") {\n    rawOutput = j.response;\n  } else {\n    rawOutput = JSON.stringify(j);\n  }\n\n  // 🔹 Rimuove backtick e spazi extra\n  let cleanText = rawOutput.replace(/```json|```/g, \"\").trim();\n\n  // 🔹 Tenta di fare il parsing del JSON dell'agente\n  let parsed;\n  try {\n    parsed = JSON.parse(cleanText);\n  } catch (error) {\n    // Se il parsing fallisce, forza un fallback\n    parsed = {\n      Domanda: j.chatInput || j.chat_input || \"Domanda non disponibile\",\n      Risposta: canonicalFallback,\n      is_fallback: true\n    };\n  }\n\n  // 🔹 Normalizza i testi per confrontarli\n  const rispostaNorm = (parsed.Risposta || \"\").toLowerCase().trim();\n  const fallbackNorm = canonicalFallback.toLowerCase().trim();\n\n  // 🔹 Calcola il flag di fallback come booleano vero\n  const isFallback = rispostaNorm === fallbackNorm;\n\n  // 🔹 Genera l’output normalizzato\n  itemsOut.push({\n    json: {\n      Domanda: parsed.Domanda || j.chatInput || \"Domanda non disponibile\",\n      Risposta: parsed.Risposta || canonicalFallback,\n      is_fallback: Boolean(isFallback)\n    }\n  });\n}\n\n// 🔹 Restituisce il nuovo array di risultati normalizzati\nreturn itemsOut;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -720,
+        144
+      ],
+      "id": "cc4e52d1-753f-41f2-b9fd-e5a28d6c0fe2",
+      "name": "Normalize AI Output"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "79f78ecb-3dfc-4316-85b7-2fbea09d46e7",
+              "leftValue": "={{ $json.chatInput }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "3d1339e3-743d-42c7-8819-9df2e9aa542e",
+              "leftValue": "={{ $json.chatInput }}",
+              "rightValue": "undefined",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            },
+            {
+              "id": "4ba2ca3d-78c1-4aa8-86b6-ae6ecd4676c9",
+              "leftValue": "={{ $json.chatInput }}",
+              "rightValue": "null",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1360,
+        160
+      ],
+      "id": "dd1d5b2a-1f7b-4b7a-bedc-b614218f0f51",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Nodo Code: salva e normalizza la domanda originale\n// Input: $json[\"chat input\"]\n// Output: $json[\"chatInput\"] pronto per l'agente\n\nconst itemsOut = [];\n\nfor (let i = 0; i < items.length; i++) {\n    const j = items[i].json;\n\n    // Prende la domanda originale dal campo \"chat input\" (in arrivo dal webhook o form)\n    let chatInput = j[\"chat input\"] || j[\"chatInput\"] || \"\";\n\n    // Normalizza: rimuove spazi iniziali/finali e newline\n    chatInput = chatInput.toString().trim();\n\n    // Passa il campo corretto al JSON in output\n    itemsOut.push({\n        json: {\n            chatInput: chatInput\n        }\n    });\n}\n\nreturn itemsOut;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1568,
+        160
+      ],
+      "id": "90c98a23-67b0-405a-be67-ddbde4d8fedd",
+      "name": "Salva domanda"
+    },
+    {
+      "parameters": {
+        "description": "=L’utente ha posto la seguente domanda al sistema AI, ma il bot non è stato in grado di fornire una risposta basata sui documenti disponibili:  Domanda: {{ $json.Domanda }}  Si richiede assistenza per fornire una risposta corretta o aggiornare il contesto documentale se necessario.",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.zendesk",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "27f57600-dfea-41bc-b2df-9a85d71fd114",
+      "name": "Create a ticket",
+      "credentials": {
+        "zendeskApi": {
+          "id": "rn0FxV25O2m7BPW4",
+          "name": "Zendesk account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "81afadb6-ed62-486d-bfa8-a99fbc1fa1ad",
+              "name": "Domanda",
+              "value": "={{ $json[\"Domanda\"] }}",
+              "type": "string"
+            },
+            {
+              "id": "aca3f8a9-e40d-418b-ba0c-a9b18a06f02b",
+              "name": "Risposta",
+              "value": "={{ $json[\"Risposta\"] }}",
+              "type": "string"
+            },
+            {
+              "id": "35c884ea-4980-4815-a0d8-4f2e54f7cf5a",
+              "name": "is_fallback",
+              "value": "={{ $json[\"is_fallback\"] }}",
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -464,
+        144
+      ],
+      "id": "423bdb92-bba9-4e96-b001-8e9009f49659",
+      "name": "dati necessari"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Upload your file here": {
+      "main": [
+        [
+          {
+            "node": "Insert Data to Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Insert Data to Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query Data Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Salva domanda",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Normalize AI Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Insert Data to Store",
+            "type": "ai_embedding",
+            "index": 0
+          },
+          {
+            "node": "Query Data Tool",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Create a ticket",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create a record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize AI Output": {
+      "main": [
+        [
+          {
+            "node": "dati necessari",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Salva domanda": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "dati necessari": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "51f49859-64f3-4bd2-af54-e9f33039f6bd",
+  "meta": {
+    "instanceId": "3eade08974c65ea0e714de990b1c4d4deb3f525e0d19f574aa90538cacfd42e4"
+  },
+  "id": "lytJOXZtIIeTNgQ8",
+  "tags": []
+}
