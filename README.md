@@ -1,4 +1,6 @@
-# 🤖 RAG Chatbot 
+# 🤖 RAG Chatbot per CROP NEWS - ITALIA VIRTUTE (Flusso 12)
+
+**Video di Spiegazione Dettagliata:** [https://youtu.be/MNRREksiUHI](https://youtu.be/MNRREksiUHI)
 
 Questo workflow di n8n implementa un sistema avanzato di **Retrieval-Augmented Generation (RAG)** per un chatbot di Question-Answering (QA) basato su documentazione aziendale.
 
