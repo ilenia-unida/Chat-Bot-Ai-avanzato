@@ -4,7 +4,7 @@
 
 Questo workflow di n8n implementa un sistema avanzato di **Retrieval-Augmented Generation (RAG)** per un chatbot di Question-Answering (QA) basato su documentazione aziendale.
 
-Il sistema è progettato per fornire risposte accurate, professionali e basate esclusivamente sui documenti di riferimento (PDF) relativi al sistema di rating reputazionale **CROP NEWS - ITALIA VIRTUTE** (inclusi RAM, RATER, APART e ME-AVALUETE HOLDING).
+Il sistema è progettato per fornire risposte accurate, professionali e basate esclusivamente sui documenti di riferimento (PDF), nel mio caso relativi al sistema di rating reputazionale **CROP NEWS - ITALIA VIRTUTE**.
 
 ---
 
