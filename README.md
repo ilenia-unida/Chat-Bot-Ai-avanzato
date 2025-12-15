@@ -1,4 +1,4 @@
-# 🤖 RAG Chatbot per CROP NEWS - ITALIA VIRTUTE (Flusso 12)
+# 🤖 RAG Chatbot 
 
 **Video di Spiegazione Dettagliata:** [https://youtu.be/MNRREksiUHI](https://youtu.be/MNRREksiUHI)
 
